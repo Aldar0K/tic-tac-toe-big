@@ -37,6 +37,7 @@ export const useGame = ({ xName, oName, winLen = 5 }: UseGameParams) => {
   const [winLine, setWinLine] = useState<Array<{ x: number; y: number }>>([]);
   const [matchId, setMatchId] = useState<MatchId>(() => createMatchId());
   const [createdAt, setCreatedAt] = useState<number>(() => Date.now());
+  const [isPersisted, setIsPersisted] = useState(false);
 
   const makeMove = (x: number, y: number): MakeMoveResult => {
     if (winner) return { ok: false, reason: "finished" };
@@ -70,9 +71,11 @@ export const useGame = ({ xName, oName, winLen = 5 }: UseGameParams) => {
     setWinLine([]);
     setMatchId(createMatchId());
     setCreatedAt(Date.now());
+    setIsPersisted(false);
   };
 
   const finishAndPersist = () => {
+    if (isPersisted) return;
     const match: Match = {
       id: matchId,
       players: { xName, oName },
@@ -93,6 +96,7 @@ export const useGame = ({ xName, oName, winLen = 5 }: UseGameParams) => {
     } else {
       addMatch(match);
     }
+    setIsPersisted(true);
   };
 
   return {
@@ -101,6 +105,7 @@ export const useGame = ({ xName, oName, winLen = 5 }: UseGameParams) => {
     currentPlayer,
     winner,
     winLine,
+    isPersisted,
     makeMove,
     reset,
     finishAndPersist,

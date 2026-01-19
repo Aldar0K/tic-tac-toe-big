@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { BoardViewport } from "@/widgets/game-board";
+import { BoardViewport, type BoardViewportHandle } from "@/widgets/game-board";
 import { buildBoardFromMoves } from "@/entities/board";
 import { useMatchById, ReplayControls } from "@/features/match-history";
 import { DESKTOP_CELL_SIZE, MOBILE_CELL_SIZE } from "@/shared/config/game";
@@ -13,6 +13,7 @@ export const MatchPage = () => {
   const { match, notFound } = useMatchById(id);
   const [step, setStep] = useState(0);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const boardRef = useRef<BoardViewportHandle | null>(null);
 
   useEffect(() => {
     if (match) {
@@ -64,6 +65,7 @@ export const MatchPage = () => {
           <CardContent className="flex flex-col gap-6 md:flex-row md:items-start">
             <div className="flex flex-1 justify-center">
               <BoardViewport
+                ref={boardRef}
                 board={board}
                 lastMove={lastMove}
                 winLine={showWinLine ? match.winLine : []}
@@ -79,6 +81,18 @@ export const MatchPage = () => {
                   setStep(Math.max(0, Math.min(next, match.moves.length)))
                 }
               />
+              <Button
+                className="w-full"
+                variant="secondary"
+                onClick={() => {
+                  if (lastMove) {
+                    boardRef.current?.centerOn(lastMove.x, lastMove.y);
+                  }
+                }}
+                disabled={!lastMove}
+              >
+                Center on last move
+              </Button>
               <Button className="w-full" variant="secondary" onClick={() => navigate("/history")}>
                 Back to history
               </Button>

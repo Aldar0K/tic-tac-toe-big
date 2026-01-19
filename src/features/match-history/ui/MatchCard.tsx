@@ -9,6 +9,9 @@ type MatchCardProps = {
 export const MatchCard = ({ match, onOpen }: MatchCardProps) => {
   const createdLabel = new Date(match.createdAt).toLocaleString();
   const winnerLabel = match.winner ? `Winner ${match.winner}` : "No winner";
+  const durationLabel = match.finishedAt
+    ? formatDuration(match.finishedAt - match.createdAt)
+    : null;
 
   return (
     <Card className="bg-slate-950/50">
@@ -30,11 +33,26 @@ export const MatchCard = ({ match, onOpen }: MatchCardProps) => {
         </Badge>
       </CardHeader>
       <CardContent className="flex items-center justify-between gap-4 pt-0">
-        <span className="text-sm text-slate-300">Moves: {match.moves.length}</span>
+        <div className="text-sm text-slate-300">
+          <span>Moves: {match.moves.length}</span>
+          {durationLabel ? <span className="ml-2">• {durationLabel}</span> : null}
+        </div>
         <Button variant="ghost" onClick={onOpen}>
           Open
         </Button>
       </CardContent>
     </Card>
   );
+};
+
+const formatDuration = (ms: number) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const seconds = totalSeconds % 60;
+  const minutesTotal = Math.floor(totalSeconds / 60);
+  const minutes = minutesTotal % 60;
+  const hours = Math.floor(minutesTotal / 60);
+
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
 };

@@ -107,6 +107,10 @@ export const useCamera = ({
     setCameraY(y);
   }, []);
 
+  const centerZero = useCallback(() => {
+    centerOn(0, 0);
+  }, [centerOn]);
+
   return {
     cameraX,
     cameraY,
@@ -120,6 +124,7 @@ export const useCamera = ({
     zoomIn,
     zoomOut,
     centerOn,
+    centerZero,
     bind: {
       onPointerDown,
       onPointerMove,

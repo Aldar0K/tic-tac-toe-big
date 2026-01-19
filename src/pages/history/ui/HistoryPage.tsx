@@ -19,7 +19,16 @@ export const HistoryPage = () => {
               Back to game
             </Button>
             {removeAll ? (
-              <Button variant="ghost" onClick={() => removeAll()}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  const confirmed = window.confirm("Clear all match history?");
+                  if (confirmed) {
+                    removeAll();
+                  }
+                }}
+                disabled={matches.length === 0}
+              >
                 Clear history
               </Button>
             ) : null}

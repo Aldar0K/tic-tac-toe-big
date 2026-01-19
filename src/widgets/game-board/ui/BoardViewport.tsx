@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { keyOf } from "@/entities/board";
 import { useCamera } from "@/widgets/game-board/model/useCamera";
 import { Button } from "@/shared/ui";
@@ -16,7 +23,12 @@ type BoardViewportProps = {
 };
 
 // Example: <BoardViewport board={board} onCellClick={(x, y) => makeMove(x, y)} />
-export const BoardViewport = ({
+export type BoardViewportHandle = {
+  centerOn: (x: number, y: number) => void;
+  centerZero: () => void;
+};
+
+export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>(({
   board,
   lastMove,
   winLine,
@@ -26,7 +38,7 @@ export const BoardViewport = ({
   showCoordinates,
   initialCellSize,
   onCameraChange,
-}: BoardViewportProps) => {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -41,6 +53,8 @@ export const BoardViewport = ({
     setScale,
     zoomIn,
     zoomOut,
+    centerOn,
+    centerZero,
     bind,
   } = useCamera({
     gridSize,
@@ -80,6 +94,15 @@ export const BoardViewport = ({
   useEffect(() => {
     setScale(fitScale);
   }, [fitScale, setScale]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      centerOn,
+      centerZero,
+    }),
+    [centerOn, centerZero]
+  );
 
   const rows = useMemo(() => Array.from({ length: size }, (_, i) => i), [size]);
   const cols = useMemo(() => Array.from({ length: size }, (_, i) => i), [size]);
@@ -164,4 +187,6 @@ export const BoardViewport = ({
       </div>
     </div>
   );
-};
+});
+
+BoardViewport.displayName = "BoardViewport";

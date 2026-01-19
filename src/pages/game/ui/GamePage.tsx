@@ -1,5 +1,6 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import { BoardViewport } from "@/widgets/game-board";
+import { useMemo, useRef, useState } from "react";
+import { BoardViewport, type BoardViewportHandle } from "@/widgets/game-board";
 import { useGame } from "@/features/play-turn";
 import { getSession } from "@/features/match-setup/model/session";
 import { DESKTOP_CELL_SIZE, MOBILE_CELL_SIZE, WIN_LEN } from "@/shared/config/game";
@@ -10,6 +11,8 @@ export const GamePage = () => {
   const navigate = useNavigate();
   const session = getSession();
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const boardRef = useRef<BoardViewportHandle | null>(null);
+  const [camera, setCamera] = useState({ cameraX: 0, cameraY: 0, cellSize: MOBILE_CELL_SIZE });
 
   const game = useGame({
     xName: session?.xName ?? "Player X",
@@ -24,9 +27,12 @@ export const GamePage = () => {
   const lastMove = game.moves[game.moves.length - 1];
   const winnerName =
     game.winner === "X" ? session.xName : game.winner === "O" ? session.oName : null;
-  const statusLabel = game.winner
-    ? `Winner: ${winnerName}`
-    : `Turn: ${game.currentPlayer === "X" ? session.xName : session.oName}`;
+  const statusLabel = useMemo(() => {
+    if (game.winner) {
+      return `Winner: ${winnerName}`;
+    }
+    return `Turn: ${game.currentPlayer === "X" ? session.xName : session.oName}`;
+  }, [game.currentPlayer, game.winner, session.oName, session.xName, winnerName]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
@@ -56,32 +62,78 @@ export const GamePage = () => {
           <CardContent className="flex flex-col gap-6 md:flex-row md:items-start">
             <div className="flex flex-1 justify-center">
               <BoardViewport
+                ref={boardRef}
                 board={game.board}
                 lastMove={lastMove}
                 winLine={game.winLine}
                 initialCellSize={isDesktop ? DESKTOP_CELL_SIZE : MOBILE_CELL_SIZE}
+                showCoordinates
+                onCameraChange={setCamera}
                 onCellClick={(x, y) => {
                   game.makeMove(x, y);
                 }}
               />
             </div>
             <div className="flex w-full flex-col gap-4 md:w-64">
+              {game.winner ? (
+                <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                  Game finished. {winnerName} wins.
+                </div>
+              ) : null}
               <div className="rounded-lg border border-slate-800/70 bg-slate-950/50 px-4 py-3 text-sm text-slate-300">
                 Drag to pan • Use +/- to zoom
+              </div>
+              <div className="rounded-lg border border-slate-800/70 bg-slate-950/50 px-4 py-3 text-sm text-slate-300">
+                Center: x={camera.cameraX.toFixed(1)}, y={camera.cameraY.toFixed(1)}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  className="w-full"
+                  variant="secondary"
+                  onClick={() => boardRef.current?.centerZero()}
+                >
+                  Reset camera
+                </Button>
+                <Button
+                  className="w-full"
+                  variant="secondary"
+                  onClick={() => {
+                    if (lastMove) {
+                      boardRef.current?.centerOn(lastMove.x, lastMove.y);
+                    }
+                  }}
+                  disabled={!lastMove}
+                >
+                  Center on last move
+                </Button>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button className="w-full sm:w-auto" variant="secondary" onClick={() => game.reset()}>
                   New game
                 </Button>
-                <Button
-                  className="w-full sm:w-auto"
-                  onClick={() => {
-                    game.finishAndPersist();
-                    navigate("/history");
-                  }}
-                >
-                  Finish & Save
-                </Button>
+                {game.winner ? (
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      game.finishAndPersist();
+                      navigate("/history");
+                    }}
+                    disabled={game.isPersisted}
+                  >
+                    Save match
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      game.finishAndPersist();
+                      navigate("/history");
+                    }}
+                    disabled={game.isPersisted}
+                  >
+                    Finish & Save
+                  </Button>
+                )}
                 <Button
                   className="w-full sm:w-auto"
                   variant="ghost"
