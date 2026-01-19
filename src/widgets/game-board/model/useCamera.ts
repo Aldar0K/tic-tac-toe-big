@@ -1,9 +1,15 @@
 import { useCallback, useMemo, useRef, useState, type PointerEvent } from "react";
-import { DEFAULT_CELL_SIZE, GRID_SIZE } from "@/shared/config/game";
+import {
+  DESKTOP_CELL_SIZE,
+  GRID_SIZE,
+  MAX_CELL_SIZE,
+  MIN_CELL_SIZE,
+} from "@/shared/config/game";
+import { clamp } from "@/shared/lib/clamp";
 
 type UseCameraParams = {
   gridSize?: number;
-  cellSize?: number;
+  initialCellSize?: number;
 };
 
 type PointerState = {
@@ -14,9 +20,15 @@ type PointerState = {
   startCameraY: number;
 };
 
-export const useCamera = ({ gridSize, cellSize }: UseCameraParams = {}) => {
+export const useCamera = ({
+  gridSize,
+  initialCellSize,
+}: UseCameraParams = {}) => {
   const resolvedGridSize = gridSize ?? GRID_SIZE;
-  const resolvedCellSize = cellSize ?? DEFAULT_CELL_SIZE;
+  const [cellSize, setCellSizeState] = useState(() =>
+    clamp(initialCellSize ?? DESKTOP_CELL_SIZE, MIN_CELL_SIZE, MAX_CELL_SIZE)
+  );
+  const [scale, setScale] = useState(1);
 
   const [cameraX, setCameraX] = useState(0);
   const [cameraY, setCameraY] = useState(0);
@@ -59,12 +71,13 @@ export const useCamera = ({ gridSize, cellSize }: UseCameraParams = {}) => {
       if (state.pointerId !== event.pointerId) return;
       const dxPx = event.clientX - state.startPointerX;
       const dyPx = event.clientY - state.startPointerY;
-      const dxCells = dxPx / resolvedCellSize;
-      const dyCells = dyPx / resolvedCellSize;
+      const effectiveCellSize = cellSize * scale;
+      const dxCells = dxPx / effectiveCellSize;
+      const dyCells = dyPx / effectiveCellSize;
       setCameraX(state.startCameraX - dxCells);
       setCameraY(state.startCameraY - dyCells);
     },
-    [resolvedCellSize]
+    [cellSize, scale]
   );
 
   const onPointerUp = useCallback(
@@ -77,13 +90,36 @@ export const useCamera = ({ gridSize, cellSize }: UseCameraParams = {}) => {
     []
   );
 
+  const setCellSize = useCallback((next: number) => {
+    setCellSizeState(clamp(next, MIN_CELL_SIZE, MAX_CELL_SIZE));
+  }, []);
+
+  const zoomIn = useCallback(() => {
+    setCellSizeState((prev) => clamp(prev + 4, MIN_CELL_SIZE, MAX_CELL_SIZE));
+  }, []);
+
+  const zoomOut = useCallback(() => {
+    setCellSizeState((prev) => clamp(prev - 4, MIN_CELL_SIZE, MAX_CELL_SIZE));
+  }, []);
+
+  const centerOn = useCallback((x: number, y: number) => {
+    setCameraX(x);
+    setCameraY(y);
+  }, []);
+
   return {
     cameraX,
     cameraY,
-    cellSize: resolvedCellSize,
+    cellSize,
+    scale,
     gridSize: resolvedGridSize,
     startX,
     startY,
+    setCellSize,
+    setScale,
+    zoomIn,
+    zoomOut,
+    centerOn,
     bind: {
       onPointerDown,
       onPointerMove,

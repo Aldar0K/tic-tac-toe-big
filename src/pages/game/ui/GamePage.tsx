@@ -2,12 +2,14 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { BoardViewport } from "@/widgets/game-board";
 import { useGame } from "@/features/play-turn";
 import { getSession } from "@/features/match-setup/model/session";
-import { WIN_LEN } from "@/shared/config/game";
+import { DESKTOP_CELL_SIZE, MOBILE_CELL_SIZE, WIN_LEN } from "@/shared/config/game";
+import { useMediaQuery } from "@/shared/lib/useMediaQuery";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@/shared/ui";
 
 export const GamePage = () => {
   const navigate = useNavigate();
   const session = getSession();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const game = useGame({
     xName: session?.xName ?? "Player X",
@@ -27,9 +29,9 @@ export const GamePage = () => {
     : `Turn: ${game.currentPlayer === "X" ? session.xName : session.oName}`;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <main className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
+      <div className="mx-auto flex w-full max-w-[980px] flex-col gap-6 px-3 py-4 md:px-6 md:py-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-semibold">5 in a Row</h1>
             <p className="text-sm text-slate-400">
@@ -51,30 +53,43 @@ export const GamePage = () => {
           <CardHeader>
             <CardTitle>Board</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-6">
-            <BoardViewport
-              board={game.board}
-              lastMove={lastMove}
-              winLine={game.winLine}
-              onCellClick={(x, y) => {
-                game.makeMove(x, y);
-              }}
-            />
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <Button variant="secondary" onClick={() => game.reset()}>
-                New game
-              </Button>
-              <Button
-                onClick={() => {
-                  game.finishAndPersist();
-                  navigate("/history");
+          <CardContent className="flex flex-col gap-6 md:flex-row md:items-start">
+            <div className="flex flex-1 justify-center">
+              <BoardViewport
+                board={game.board}
+                lastMove={lastMove}
+                winLine={game.winLine}
+                initialCellSize={isDesktop ? DESKTOP_CELL_SIZE : MOBILE_CELL_SIZE}
+                onCellClick={(x, y) => {
+                  game.makeMove(x, y);
                 }}
-              >
-                Finish & Save
-              </Button>
-              <Button variant="ghost" onClick={() => navigate("/history")}>
-                History
-              </Button>
+              />
+            </div>
+            <div className="flex w-full flex-col gap-4 md:w-64">
+              <div className="rounded-lg border border-slate-800/70 bg-slate-950/50 px-4 py-3 text-sm text-slate-300">
+                Drag to pan • Use +/- to zoom
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button className="w-full sm:w-auto" variant="secondary" onClick={() => game.reset()}>
+                  New game
+                </Button>
+                <Button
+                  className="w-full sm:w-auto"
+                  onClick={() => {
+                    game.finishAndPersist();
+                    navigate("/history");
+                  }}
+                >
+                  Finish & Save
+                </Button>
+                <Button
+                  className="w-full sm:w-auto"
+                  variant="ghost"
+                  onClick={() => navigate("/history")}
+                >
+                  History
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
