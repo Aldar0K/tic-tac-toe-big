@@ -71,7 +71,7 @@ export const MatchPage = () => {
           <CardHeader>
             <CardTitle>Board</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-6 md:flex-row md:items-start">
+          <CardContent className="flex flex-col gap-6 md:flex-row md:items-start flex-wrap">
             <div className="flex flex-1 justify-center">
               <BoardViewport
                 ref={boardRef}
