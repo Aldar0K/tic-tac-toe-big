@@ -8,7 +8,7 @@ type MatchCardProps = {
 
 export const MatchCard = ({ match, onOpen }: MatchCardProps) => {
   const createdLabel = new Date(match.createdAt).toLocaleString();
-  const winnerLabel = match.winner ? `Winner ${match.winner}` : "No winner";
+  const winnerLabel = match.winner ? `Winner ${match.winner}` : "Finished (no winner)";
   const durationLabel = match.finishedAt
     ? formatDuration(match.finishedAt - match.createdAt)
     : null;

@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type PointerEvent,
 } from "react";
 import { keyOf } from "@/entities/board";
 import { useCamera } from "@/widgets/game-board/model/useCamera";
@@ -26,6 +27,7 @@ type BoardViewportProps = {
 export type BoardViewportHandle = {
   centerOn: (x: number, y: number) => void;
   centerZero: () => void;
+  resetZoom: () => void;
 };
 
 export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>(({
@@ -41,6 +43,14 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const initialCellSizeRef = useRef<number | null>(null);
+  const suppressClickRef = useRef(false);
+  const dragStateRef = useRef({
+    pointerId: null as number | null,
+    startX: 0,
+    startY: 0,
+    moved: false,
+  });
 
   const {
     cameraX,
@@ -63,8 +73,15 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
 
   useEffect(() => {
     if (!initialCellSize) return;
+    initialCellSizeRef.current = initialCellSize;
     setCellSize(initialCellSize);
   }, [initialCellSize, setCellSize]);
+
+  useEffect(() => {
+    if (initialCellSizeRef.current === null) {
+      initialCellSizeRef.current = cell;
+    }
+  }, [cell]);
 
   useEffect(() => {
     if (!onCameraChange) return;
@@ -100,9 +117,46 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
     () => ({
       centerOn,
       centerZero,
+      resetZoom: () => {
+        if (initialCellSizeRef.current !== null) {
+          setCellSize(initialCellSizeRef.current);
+        }
+      },
     }),
-    [centerOn, centerZero]
+    [centerOn, centerZero, setCellSize]
   );
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    suppressClickRef.current = false;
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    bind.onPointerDown(event);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const state = dragStateRef.current;
+    if (state.pointerId === event.pointerId && !state.moved) {
+      const dx = event.clientX - state.startX;
+      const dy = event.clientY - state.startY;
+      if (Math.hypot(dx, dy) > 5) {
+        state.moved = true;
+      }
+    }
+    bind.onPointerMove(event);
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const state = dragStateRef.current;
+    if (state.pointerId === event.pointerId) {
+      suppressClickRef.current = state.moved;
+      state.pointerId = null;
+    }
+    bind.onPointerUp(event);
+  };
 
   const rows = useMemo(() => Array.from({ length: size }, (_, i) => i), [size]);
   const cols = useMemo(() => Array.from({ length: size }, (_, i) => i), [size]);
@@ -120,7 +174,9 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
       <div
         className="relative inline-block max-w-full overflow-hidden select-none touch-none"
         style={{ width: size * displayCell, height: size * displayCell }}
-        {...bind}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
       >
         <div
           className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-lg border border-slate-800/70 bg-slate-950/80 px-2 py-1 text-xs text-slate-200"
@@ -176,7 +232,13 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
                 key={cellKey}
                 type="button"
                 className={`${baseClass} ${stateClass} ${value ? valueClass : ""}`}
-                onClick={() => onCellClick(worldX, worldY)}
+                onClick={() => {
+                  if (suppressClickRef.current) {
+                    suppressClickRef.current = false;
+                    return;
+                  }
+                  onCellClick(worldX, worldY);
+                }}
               >
                 {value ?? ""}
               </button>

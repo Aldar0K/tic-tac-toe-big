@@ -2,7 +2,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useMemo, useRef, useState } from "react";
 import { BoardViewport, type BoardViewportHandle } from "@/widgets/game-board";
 import { useGame } from "@/features/play-turn";
-import { getSession } from "@/features/match-setup/model/session";
+import { clearSession, getSession } from "@/features/match-setup/model/session";
 import { DESKTOP_CELL_SIZE, MOBILE_CELL_SIZE, WIN_LEN } from "@/shared/config/game";
 import { useMediaQuery } from "@/shared/lib/useMediaQuery";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@/shared/ui";
@@ -31,8 +31,12 @@ export const GamePage = () => {
     if (game.winner) {
       return `Winner: ${winnerName}`;
     }
-    return `Turn: ${game.currentPlayer === "X" ? session.xName : session.oName}`;
-  }, [game.currentPlayer, game.winner, session.oName, session.xName, winnerName]);
+    if (game.isPersisted) {
+      return "Finished (no winner)";
+    }
+    const currentName = game.currentPlayer === "X" ? session.xName : session.oName;
+    return `Turn: ${game.currentPlayer} (${currentName})`;
+  }, [game.currentPlayer, game.isPersisted, game.winner, session.oName, session.xName, winnerName]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
@@ -44,15 +48,26 @@ export const GamePage = () => {
               {session.xName} vs {session.oName}
             </p>
           </div>
-          <Badge
-            className={
-              game.winner
-                ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
-                : "border-slate-700/60 bg-slate-900/60 text-slate-200"
-            }
-          >
-            {statusLabel}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              className={
+                game.winner
+                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
+                  : "border-slate-700/60 bg-slate-900/60 text-slate-200"
+              }
+            >
+              {statusLabel}
+            </Badge>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                clearSession();
+                navigate("/login");
+              }}
+            >
+              Logout / Change players
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -93,6 +108,13 @@ export const GamePage = () => {
                   onClick={() => boardRef.current?.centerZero()}
                 >
                   Reset camera
+                </Button>
+                <Button
+                  className="w-full"
+                  variant="secondary"
+                  onClick={() => boardRef.current?.resetZoom()}
+                >
+                  Reset zoom
                 </Button>
                 <Button
                   className="w-full"
@@ -139,7 +161,7 @@ export const GamePage = () => {
                   variant="ghost"
                   onClick={() => navigate("/history")}
                 >
-                  History
+                  Back to history
                 </Button>
               </div>
             </div>

@@ -1,13 +1,11 @@
 import { Button, Slider } from "@/shared/ui";
+import { clamp } from "@/shared/lib/clamp";
 
 type ReplayControlsProps = {
   step: number;
   maxStep: number;
   onChangeStep: (next: number) => void;
 };
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
 
 export const ReplayControls = ({
   step,

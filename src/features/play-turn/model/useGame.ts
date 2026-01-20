@@ -5,14 +5,14 @@ import {
   type BoardMap,
   type Move,
   type Player,
-} from "../../../entities/board";
+} from "@/entities/board";
 import {
   addMatch,
   getMatchById,
   updateMatch,
   type Match,
   type MatchId,
-} from "../../../entities/match";
+} from "@/entities/match";
 
 type UseGameParams = {
   xName: string;

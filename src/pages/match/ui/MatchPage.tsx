@@ -54,7 +54,7 @@ export const MatchPage = () => {
                 : "border-slate-700/60 bg-slate-900/60 text-slate-200"
             }
           >
-            {match.winner ? `Winner ${match.winner}` : "No winner"}
+            {match.winner ? `Winner ${match.winner}` : "Finished (no winner)"}
           </Badge>
         </div>
 
@@ -74,6 +74,11 @@ export const MatchPage = () => {
               />
             </div>
             <div className="flex w-full flex-col gap-5 md:w-64">
+              <div className="rounded-lg border border-slate-800/70 bg-slate-950/50 px-4 py-3 text-sm text-slate-300">
+                Step: {step} / {match.moves.length}
+                <br />
+                Winner: {match.winner ?? "—"}
+              </div>
               <ReplayControls
                 step={step}
                 maxStep={match.moves.length}
@@ -92,6 +97,13 @@ export const MatchPage = () => {
                 disabled={!lastMove}
               >
                 Center on last move
+              </Button>
+              <Button
+                className="w-full"
+                variant="secondary"
+                onClick={() => boardRef.current?.resetZoom()}
+              >
+                Reset zoom
               </Button>
               <Button className="w-full" variant="secondary" onClick={() => navigate("/history")}>
                 Back to history
