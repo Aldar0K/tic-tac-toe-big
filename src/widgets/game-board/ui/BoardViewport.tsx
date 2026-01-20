@@ -2,6 +2,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -42,7 +43,10 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
   onCameraChange,
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return window.innerWidth;
+  });
   const initialCellSizeRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
   const dragStateRef = useRef({
@@ -88,7 +92,7 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
     onCameraChange({ cameraX, cameraY, cellSize: cell });
   }, [cameraX, cameraY, cell, onCameraChange]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const node = containerRef.current;
     if (!node) return;
     const update = () => setContainerWidth(node.clientWidth);
@@ -146,7 +150,9 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
         state.moved = true;
       }
     }
-    bind.onPointerMove(event);
+    if (state.pointerId === event.pointerId && state.moved) {
+      bind.onPointerMove(event);
+    }
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -156,6 +162,30 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
       state.pointerId = null;
     }
     bind.onPointerUp(event);
+    if (suppressClickRef.current) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("[data-overlay]")) {
+      return;
+    }
+
+    if (displayCell <= 0) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    const col = Math.floor(offsetX / displayCell);
+    const row = Math.floor(offsetY / displayCell);
+    if (col < 0 || col >= size || row < 0 || row >= size) {
+      return;
+    }
+
+    onCellClick(startX + col, startY + row);
+    suppressClickRef.current = true;
   };
 
   const rows = useMemo(() => Array.from({ length: size }, (_, i) => i), [size]);
@@ -170,16 +200,18 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
   );
 
   return (
-    <div ref={containerRef} className="flex w-full max-w-full justify-center">
+    <div className="flex w-full max-w-full justify-center">
       <div
-        className="relative inline-block max-w-full overflow-hidden select-none touch-none"
-        style={{ width: size * displayCell, height: size * displayCell }}
+        ref={containerRef}
+        className="relative w-full max-w-full aspect-square overflow-hidden select-none touch-none"
+        style={{ maxWidth: fullSize }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
         <div
           className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-lg border border-slate-800/70 bg-slate-950/80 px-2 py-1 text-xs text-slate-200"
+          data-overlay
           onPointerDown={(event) => event.stopPropagation()}
         >
           <Button size="icon" variant="ghost" onClick={zoomOut} type="button">
@@ -193,6 +225,7 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
         {showCoordinates ? (
           <div
             className="absolute left-3 top-3 z-10 rounded-md border border-slate-800/70 bg-slate-950/80 px-2 py-1 text-xs text-slate-200"
+            data-overlay
             onPointerDown={(event) => event.stopPropagation()}
           >
             X: {cameraX.toFixed(1)} Y: {cameraY.toFixed(1)}

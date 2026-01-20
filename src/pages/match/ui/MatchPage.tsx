@@ -23,12 +23,21 @@ export const MatchPage = () => {
 
   if (notFound || !match) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100">
-        <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-          <h1 className="text-2xl font-semibold">Match not found</h1>
-          <Button variant="secondary" onClick={() => navigate("/history")}>
-            Back to history
-          </Button>
+      <main className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
+        <div className="mx-auto flex min-h-screen w-full max-w-4xl items-center justify-center px-6 py-12">
+          <Card className="w-full max-w-md text-center">
+            <CardHeader>
+              <CardTitle>Match not found</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              <p className="text-sm text-slate-400">
+                The match might have been removed or never existed.
+              </p>
+              <Button variant="secondary" onClick={() => navigate("/history")}>
+                Back to history
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </main>
     );

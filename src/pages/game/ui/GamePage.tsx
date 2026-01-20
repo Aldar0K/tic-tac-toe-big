@@ -2,7 +2,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useMemo, useRef, useState } from "react";
 import { BoardViewport, type BoardViewportHandle } from "@/widgets/game-board";
 import { useGame } from "@/features/play-turn";
-import { clearSession, getSession } from "@/features/match-setup/model/session";
+import { clearSession, getSession } from "@/features/match-setup";
 import { DESKTOP_CELL_SIZE, MOBILE_CELL_SIZE, WIN_LEN } from "@/shared/config/game";
 import { useMediaQuery } from "@/shared/lib/useMediaQuery";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@/shared/ui";
@@ -65,7 +65,7 @@ export const GamePage = () => {
                 navigate("/login");
               }}
             >
-              Logout / Change players
+              Log out / change players
             </Button>
           </div>
         </div>
@@ -153,7 +153,7 @@ export const GamePage = () => {
                     }}
                     disabled={game.isPersisted}
                   >
-                    Finish & Save
+                    Finish & save
                   </Button>
                 )}
                 <Button

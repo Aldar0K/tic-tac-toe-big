@@ -1,6 +1,5 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import { LoginForm } from "@/features/match-setup";
-import { getSession, setSession } from "@/features/match-setup/model/session";
+import { LoginForm, getSession, setSession } from "@/features/match-setup";
 import { Button } from "@/shared/ui";
 
 export const LoginPage = () => {
