@@ -42,7 +42,7 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
   initialCellSize,
   onCameraChange,
 }, ref) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(() => {
     if (typeof window === "undefined") return 0;
     return window.innerWidth;
@@ -93,7 +93,7 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
   }, [cameraX, cameraY, cell, onCameraChange]);
 
   useLayoutEffect(() => {
-    const node = containerRef.current;
+    const node = wrapperRef.current;
     if (!node) return;
     const update = () => setContainerWidth(node.clientWidth);
     update();
@@ -109,8 +109,9 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
   }, []);
 
   const fullSize = size * cell;
-  const fitScale = containerWidth > 0 ? Math.min(1, containerWidth / fullSize) : 1;
-  const displayCell = cell * fitScale;
+  const displaySize = containerWidth > 0 ? Math.min(fullSize, containerWidth) : fullSize;
+  const displayCell = displaySize / size;
+  const fitScale = displayCell / cell;
 
   useEffect(() => {
     setScale(fitScale);
@@ -200,11 +201,10 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
   );
 
   return (
-    <div className="flex w-full max-w-full justify-center">
+    <div ref={wrapperRef} className="flex w-full max-w-full justify-center">
       <div
-        ref={containerRef}
-        className="relative w-full max-w-full aspect-square overflow-hidden select-none touch-none"
-        style={{ maxWidth: fullSize }}
+        className="relative overflow-hidden select-none touch-none"
+        style={{ width: displaySize, height: displaySize }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -234,12 +234,10 @@ export const BoardViewport = forwardRef<BoardViewportHandle, BoardViewportProps>
       <div
         className="grid"
         style={{
-          gridTemplateColumns: `repeat(${size}, ${cell}px)`,
-          gridTemplateRows: `repeat(${size}, ${cell}px)`,
-          transform: `scale(${fitScale})`,
-          transformOrigin: "top left",
-          width: fullSize,
-          height: fullSize,
+          gridTemplateColumns: `repeat(${size}, ${displayCell}px)`,
+          gridTemplateRows: `repeat(${size}, ${displayCell}px)`,
+          width: displaySize,
+          height: displaySize,
         }}
       >
         {rows.map((row) =>
