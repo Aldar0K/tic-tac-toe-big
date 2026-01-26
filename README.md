@@ -21,10 +21,31 @@ src/
   shared/    # ui, lib, config
 ```
 
+## Flow diagram
+
+```text
+Login page
+  |
+  v
+sessionStorage (players)
+  |
+  v
+Game page --- useGame ---> BoardViewport (pan/zoom)
+  |
+  v
+finishAndPersist -> localStorage (matches)
+  |
+  v
+History page -> open match -> Match page
+                          |
+                          v
+               buildBoardFromMoves -> Replay viewport + step
+```
+
 ## Features
 
 - Login with two player names (session stored in sessionStorage).
-- Infinite plane via sparse Map + 25x25 viewport with drag and zoom.
+- Infinite plane via sparse Map + 20x20 viewport with drag and zoom.
 - Win detection from last move (5 in a row).
 - Match history in localStorage with replay controls.
 
@@ -33,6 +54,7 @@ src/
 - Enter both player names on `/login` and start the game.
 - Click a cell to place X/O, drag to pan, use +/- to zoom.
 - Win condition: 5 in a row horizontally, vertically, or diagonally.
+- Viewport size: 20x20 cells (fixed window).
 - Use “Finish & save” to save a match without a winner.
 
 ## Screens
