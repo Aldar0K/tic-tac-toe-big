@@ -1,6 +1,6 @@
 # tic-tac-toe-big
 
-## Run locally
+## Запуск локально
 
 ```bash
 npm install
@@ -9,62 +9,66 @@ npm run test
 npm run build
 ```
 
-## Project structure (FSD)
+## Структура проекта (FSD)
 
 ```
 src/
-  app/       # router + app providers
-  pages/     # login / game / history / match
-  widgets/   # game board viewport
-  features/  # match setup, play turn, match history
-  entities/  # board + match domain
+  app/       # роутер и композиция приложения
+  pages/     # страницы: login / game / history / match
+  widgets/   # виджеты: игровое поле
+  features/  # фичи: настройка матча, ход, история
+  entities/  # домен: board, match
   shared/    # ui, lib, config
 ```
 
-## Flow diagram
+## Диаграмма потока
 
 ```text
-Login page
+Login
   |
   v
-sessionStorage (players)
+sessionStorage (игроки)
   |
   v
-Game page --- useGame ---> BoardViewport (pan/zoom)
+Game --- useGame ---> BoardViewport (пан/зум)
   |
   v
-finishAndPersist -> localStorage (matches)
+finishAndPersist -> localStorage (матчи)
   |
   v
-History page -> open match -> Match page
+History -> открыть матч -> Match
                           |
                           v
-               buildBoardFromMoves -> Replay viewport + step
+               buildBoardFromMoves -> Реплей + шаг
 ```
 
-## Features
+## Возможности
 
-- Login with two player names (session stored in sessionStorage).
-- Infinite plane via sparse Map + 20x20 viewport with drag and zoom.
-- Win detection from last move (5 in a row).
-- Match history in localStorage with replay controls.
+- Вход с именами двух игроков (sessionStorage).
+- Бесконечная плоскость через разреженный Map + viewport 20x20, панорамирование и зум.
+- Победа определяется от последнего хода (5 в ряд).
+- История матчей в localStorage + реплей.
 
-## How to play
+## Как играть
 
-- Enter both player names on `/login` and start the game.
-- Click a cell to place X/O, drag to pan, use +/- to zoom.
-- Win condition: 5 in a row horizontally, vertically, or diagonally.
-- Viewport size: 20x20 cells (fixed window).
-- Use “Finish & save” to save a match without a winner.
+- Введите имена на `/login` и начните игру.
+- Клик по клетке ставит X/O, drag — панорама, +/- — зум.
+- Победа: 5 в ряд по горизонтали/вертикали/диагонали.
+- Размер окна: 20x20 клеток (фиксированное окно).
+- “Finish & save” сохраняет матч без победителя.
 
-## Screens
+## Экраны
 
 - `/login`
 - `/game`
 - `/history`
 - `/history/:id`
 
-## Assumptions
+## Допущения
 
-- No automatic draw detection due to infinite board; a draw is a manual finish without a winner.
-- Player names are stored in sessionStorage for the current session.
+- Авто-ничья не определяется из-за бесконечного поля; ничья — ручное завершение.
+- Имена игроков хранятся в sessionStorage на время сессии.
+
+## Документация
+
+- `docs/coordinates.md` — система координат и маппинг viewport

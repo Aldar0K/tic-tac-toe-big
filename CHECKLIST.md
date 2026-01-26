@@ -1,9 +1,9 @@
-# Delivery checklist
+# Чеклист сдачи
 
-- Login -> Start -> Game
-- Make moves -> Win -> Save match
-- Finish without win -> Save
-- History shows matches -> Open match -> Replay step slider
-- Mobile width check (no horizontal scroll)
-- Pan to negative coords (confirm infinite plane)
-- Build + tests (`npm run build`, `npm run test`)
+- Логин -> Start -> Game
+- Сделать ходы -> Победа -> Save match
+- Завершить без победы -> Save
+- История показывает матчи -> Открыть матч -> Слайдер шагов реплея
+- Проверка на мобилке (нет горизонтального скролла)
+- Панорамирование в отрицательные координаты (бесконечная плоскость)
+- Сборка и тесты (`npm run build`, `npm run test`)

@@ -1,3 +1,4 @@
+import { WIN_LEN } from "@/shared/config/game";
 import type { BoardMap, Move, Player } from "../model/types";
 import { keyOf } from "./key";
 
@@ -11,7 +12,7 @@ type WinResult = {
 export const checkWinFromLastMove = (
   board: BoardMap,
   lastMove: Move,
-  winLen = 5
+  winLen = WIN_LEN
 ): WinResult => {
   const { x, y, player } = lastMove;
   const directions = [
