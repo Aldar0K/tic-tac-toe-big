@@ -14,10 +14,13 @@ export const MatchPage = () => {
   const [step, setStep] = useState(0);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const boardRef = useRef<BoardViewportHandle | null>(null);
+  const lastMatchIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (match) {
+    if (!match) return;
+    if (lastMatchIdRef.current !== match.id) {
       setStep(match.moves.length);
+      lastMatchIdRef.current = match.id;
     }
   }, [match]);
 
