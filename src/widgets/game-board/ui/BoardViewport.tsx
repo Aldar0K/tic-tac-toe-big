@@ -9,7 +9,7 @@ import {
   type PointerEvent,
 } from "react";
 import { keyOf } from "@/entities/board";
-import { useCamera } from "@/widgets/game-board/model/useCamera";
+import { useCamera } from "../model/useCamera";
 import { Button } from "@/shared/ui";
 
 type BoardViewportProps = {

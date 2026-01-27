@@ -72,3 +72,4 @@ History -> открыть матч -> Match
 ## Документация
 
 - `docs/coordinates.md` — система координат и маппинг viewport
+- `docs/board-viewport.md` — устройство BoardViewport (drag/zoom/клики)
